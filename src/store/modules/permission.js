@@ -1,5 +1,6 @@
 import { asyncRoutes, constantRoutes } from '@/router'
 
+import{getMenuList}from '@/api/user';
 /**
  * Use meta.role to determine if the current user has permission
  * @param roles
@@ -18,20 +19,29 @@ function hasPermission(roles, route) {
  * @param routes asyncRoutes
  * @param roles
  */
-export function filterAsyncRoutes(routes, roles) {
-  const res = []
+export function filterAsyncRoutes(menus) {
+  // const res = []
 
-  routes.forEach(route => {
-    const tmp = { ...route }
-    if (hasPermission(roles, tmp)) {
-      if (tmp.children) {
-        tmp.children = filterAsyncRoutes(tmp.children, roles)
-      }
-      res.push(tmp)
+  // routes.forEach(route => {
+  //   const tmp = { ...route }
+  //   if (hasPermission(roles, tmp)) {
+  //     if (tmp.children) {
+  //       tmp.children = filterAsyncRoutes(tmp.children, roles)
+  //     }
+  //     res.push(tmp)
+  //   }
+  // })
+  let routes = menus.map(menu=>{
+    if(menu.component){
+      let name = menu.component;
+      menu.component=()=>import(`@/${name}`)
     }
+    if(menu.children && menu.children.length){
+      menu.children = filterAsyncRoutes(menu.children);
+    }
+    return menu;
   })
-
-  return res
+  return routes;
 }
 
 const state = {
@@ -48,15 +58,21 @@ const mutations = {
 
 const actions = {
   generateRoutes({ commit }, roles) {
-    return new Promise(resolve => {
-      let accessedRoutes
-      if (roles.includes('admin')) {
-        accessedRoutes = asyncRoutes || []
-      } else {
-        accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
-      }
-      commit('SET_ROUTES', accessedRoutes)
-      resolve(accessedRoutes)
+    return new Promise((resolve ,reject)=> {
+      getMenuList().then(res=>{
+        let accessedRoutes =res;
+        // if (roles.includes('admin')) {
+        //   accessedRoutes = asyncRoutes || []
+        // } else {
+        //   accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+        // }
+        let remoteroutes = filterAsyncRoutes(accessedRoutes);
+        commit('SET_ROUTES', remoteroutes)
+        resolve(remoteroutes)
+      }).catch(error=>{
+        reject(error);
+      })
+      
     })
   }
 }
