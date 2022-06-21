@@ -1,5 +1,5 @@
-import { asyncRoutes, constantRoutes } from '@/router'
-
+import {  constantRoutes } from '@/router'
+import Layout from '@/layout'
 import{getMenuList}from '@/api/user';
 /**
  * Use meta.role to determine if the current user has permission
@@ -34,7 +34,12 @@ export function filterAsyncRoutes(menus) {
   let routes = menus.map(menu=>{
     if(menu.component){
       let name = menu.component;
-      menu.component=()=>import(`@/${name}`)
+      if(name ==='layout'){
+        menu.component = Layout
+      }else{
+        menu.component = (resolve) => require([`@/${name}`],resolve);
+      }
+     
     }
     if(menu.children && menu.children.length){
       menu.children = filterAsyncRoutes(menu.children);
