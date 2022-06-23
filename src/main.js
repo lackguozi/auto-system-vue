@@ -19,8 +19,8 @@ import './permission' // permission control
 import './utils/error-log' // error log
 
 import * as filters from './filters' // global filters
-
-
+import resetForm from '@/utils/resetForm'
+import objCopy from '@/utils/objCopy'
 
 
 Vue.use(Element, {
@@ -32,7 +32,8 @@ Vue.use(Element, {
 Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key])
 })
-
+Vue.prototype.$resetForm = resetForm;
+Vue.prototype.$objCopy = objCopy;
 Vue.config.productionTip = false
 
 new Vue({
